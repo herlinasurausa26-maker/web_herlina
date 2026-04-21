@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakanEnak - Order Makanan Online</title>
+    <link href="style.css" rel="stylesheet">
+    <style>
+         
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">🍽️ MakanEnak</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#menu">Menu</a></li>
+                <li><a href="#contact">Kontak</a></li>
+            </ul>
+            <div class="cart-icon" onclick="toggleCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Makanan Lezat<br>Siap Saji</h1>
+            <p>Pesan makanan favoritmu sekarang juga!</p>
+            <a href="#menu" class="cta-button">Lihat Menu</a>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section class="menu-section" id="menu">
+        <h2 class="section-title">Menu Pilihan Hari Ini</h2>
+        <div class="menu-grid" id="menuGrid">
+            <!-- Menu items will be populated by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>Keranjang Belanja</h2>
+                <button class="close-cart" onclick="toggleCart()">&times;</button>
+            </div>
+            <div id="cartItems"></div>
+            <div class="cart-total" id="cartTotal">Total: Rp 0</div>
+            <button class="checkout-btn" onclick="checkout()">Checkout</button>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage">
+        <i class="fas fa-check-circle"></i> Item ditambahkan ke keranjang!
+    </div>
+
+    <script>
+        // Menu Data
+        const menuItems = [
+            { id: 1, name: 'Nasi Goreng Spesial', price: 25000, icon: '🍚' },
+            { id: 2, name: 'Ayam Geprek Pedas', price: 28000, icon: '🍗' },
+            { id: 3, name: 'Mie Goreng Jumbo', price: 22000, icon: '🍜' },
+            { id: 4, name: 'Sate Ayam 10 Tusuk', price: 35000, icon: '🍡' },
+            { id: 5, name: 'Nasi Padang Rendang', price: 32000, icon: '🥘' },
+            { id: 6, name: 'Burger Spesial', price: 29000, icon: '🍔' },
+            { id: 7, name: 'Pasta Carbonara', price: 38000, icon: '🍝' },
+            { id: 8, name: 'Es Teh Manis Besar', price: 8000, icon: '🧋' },
+            { id: 9, name: 'Jus Jeruk Fresh', price: 15000, icon: '🧃' }
+        ];
+
+        let cart = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMenu();
+            updateCartCount();
+        });
+
+        // Render Menu
+        function renderMenu() {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = menuItems.map(item => `
+                <div class="menu-item">
+                    <div class="menu-img">${item.icon}</div>
+                    <div class="menu-info">
+                        <div class="menu-name">${item.name}</div>
+                        <div class="menu-price">Rp ${item.price.toLocaleString('id-ID')}</div>
+                        <button class="add-to-cart" onclick="addToCart(${item.id})">
+                            <i class="fas fa-plus"></i> Tambah ke Keranjang
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add to Cart
+        function addToCart(itemId) {
+            const item = menuItems.find(menu => menu.id === itemId);
+            const existingItem = cart.find(cartItem => cartItem.id === itemId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...item, quantity: 1 });
+            }
+
+            updateCartCount();
+            showSuccessMessage();
+        }
+
+        // Update Cart Count
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = totalItems;
+        }
+
+        // Toggle Cart Modal
+        function toggleCart() {
+            const modal = document.getElementById('cartModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+            if (modal.style.display === 'block') {
+                renderCart();
+            }
+        }
+
+        // Render Cart
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #666;">Keranjang kosong</p>';
+                cartTotal.textContent = 'Total: Rp 0';
+                return;
+            }
+
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <div style="font-weight: bold;">${item.name}</div>
+                        <div style="color: #666;">Rp ${item.price.toLocaleString('id-ID')} x ${item.quantity}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button onclick="changeQuantity(${item.id}, -1)" style="background: #ff4757; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;">-</button>
+                        <span style="font-weight: bold; min-width: 20px; text-align: center;">${item.quantity}</span>
+                        <button onclick="changeQuantity(${item.id}, 1)" style="background: #38d9a9; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.textContent = `Total: Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        // Change Quantity
+        function changeQuantity(itemId, change) {
+            const item = cart.find(item => item.id === itemId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(cartItem => cartItem.id !== itemId);
+                }
+                updateCartCount();
+                renderCart();
+            }
+        }
+
+        // Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Keranjang kosong!');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            alert(`Terima kasih! Pesanan Anda Rp ${total.toLocaleString('id-ID')} telah diterima. Silakan tunggu konfirmasi.`);
+            
+            // Reset cart
+            cart = [];
+            updateCartCount();
+            toggleCart();
+        }
+
+        // Show Success Message
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.classList.add('show');
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('cartModal');
+            if (event.target === modal) {
+                toggleCart();
+            }
+        }
+    </script>
+</body>
+</html>
